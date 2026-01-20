@@ -33,6 +33,14 @@ function getRandomColor(existingColors: string[]): string {
   return available[Math.floor(Math.random() * available.length)]
 }
 
+export const EXPIRATION_DAYS = 14
+
+export function getExpirationTimestamp(): Timestamp {
+  const expirationDate = new Date()
+  expirationDate.setDate(expirationDate.getDate() + EXPIRATION_DAYS)
+  return Timestamp.fromDate(expirationDate)
+}
+
 export function useGroups() {
   const [groups, setGroups] = useState<Group[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -85,6 +93,7 @@ export function useGroups() {
       createdBy: memberId,
       members: [member],
       currency: 'TWD',
+      expiresAt: getExpirationTimestamp(),
     }
 
     const docRef = await addDoc(collection(db, 'groups'), groupData)

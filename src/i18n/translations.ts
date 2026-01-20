@@ -34,6 +34,7 @@ const translations = {
 
     // Group Page
     inviteLink: '邀請連結',
+    expiresIn: '資料將於 {days} 天後自動刪除',
     expenses: '帳單',
     membersTab: '成員',
     settlement: '結算',
@@ -139,6 +140,7 @@ const translations = {
 
     // Group Page
     inviteLink: 'Invite Link',
+    expiresIn: 'Data will be deleted in {days} days',
     expenses: 'Expenses',
     membersTab: 'Members',
     settlement: 'Settle',
@@ -244,6 +246,7 @@ const translations = {
 
     // Group Page
     inviteLink: '招待リンク',
+    expiresIn: 'データは {days} 日後に自動削除されます',
     expenses: '支出',
     membersTab: 'メンバー',
     settlement: '精算',
@@ -349,6 +352,7 @@ const translations = {
 
     // Group Page
     inviteLink: '초대 링크',
+    expiresIn: '데이터가 {days}일 후 자동 삭제됩니다',
     expenses: '지출',
     membersTab: '멤버',
     settlement: '정산',
@@ -454,6 +458,7 @@ const translations = {
 
     // Group Page
     inviteLink: 'Enlace de invitación',
+    expiresIn: 'Los datos se eliminarán en {days} días',
     expenses: 'Gastos',
     membersTab: 'Miembros',
     settlement: 'Liquidar',

@@ -152,7 +152,34 @@ service cloud.firestore {
 }
 ```
 
-### 5. 部署到 Firebase Hosting
+### 5. 設定自動刪除 (TTL)
+
+資料會在 14 天後自動刪除。需要在 Firebase Console 設定 TTL 政策：
+
+1. 前往 Firebase Console > Firestore Database > Indexes > TTL policies
+2. 點擊「Create policy」
+3. 為 `groups` collection 新增 TTL，使用 `expiresAt` 欄位
+4. 為 `expenses` collection 新增 TTL，使用 `expiresAt` 欄位
+
+或使用 Firebase CLI：
+
+```bash
+# 設定 groups 的 TTL
+gcloud firestore fields ttls update expiresAt \
+  --collection-group=groups \
+  --enable-ttl \
+  --project=going-dutch-master
+
+# 設定 expenses 的 TTL
+gcloud firestore fields ttls update expiresAt \
+  --collection-group=expenses \
+  --enable-ttl \
+  --project=你的專案-id
+```
+
+> 注意：TTL 刪除可能有 24-72 小時的延遲
+
+### 6. 部署到 Firebase Hosting
 
 ```bash
 # 安裝 Firebase CLI

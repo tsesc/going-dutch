@@ -13,6 +13,7 @@ import {
 import { db } from '@/lib/firebase'
 import { useUserStore } from '@/stores/user-store'
 import type { Expense, Category, SplitMode } from '@/types'
+import { getExpirationTimestamp } from './useGroups'
 
 export interface AddExpenseInput {
   amount: number
@@ -79,6 +80,7 @@ export function useExpenses(groupId: string) {
       note: input.note || null,
       createdAt: Timestamp.now(),
       createdBy: memberId,
+      expiresAt: getExpirationTimestamp(),
     }
 
     const docRef = await addDoc(collection(db, 'expenses'), expenseData)

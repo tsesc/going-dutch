@@ -53,6 +53,7 @@ export interface Group {
   members: Member[]
   currency: string
   settlements?: SettlementRecord[]
+  expiresAt: Timestamp // Auto-delete after 14 days
 }
 
 export interface Expense {
@@ -72,6 +73,7 @@ export interface Expense {
   createdBy: string
   updatedAt?: Timestamp
   updatedBy?: string
+  expiresAt: Timestamp // Auto-delete after 14 days
 }
 
 export interface Settlement {

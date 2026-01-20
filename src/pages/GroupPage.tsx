@@ -9,6 +9,7 @@ import {
   Share2,
   Copy,
   Check,
+  Clock,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -82,6 +83,18 @@ export function GroupPage() {
 
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0)
 
+  // Calculate remaining days until expiration
+  const getRemainingDays = () => {
+    if (!group?.expiresAt) return null
+    const expiresAt = group.expiresAt.toDate()
+    const now = new Date()
+    const diffTime = expiresAt.getTime() - now.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays
+  }
+
+  const remainingDays = getRemainingDays()
+
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
@@ -108,7 +121,7 @@ export function GroupPage() {
       </header>
 
       {/* Invite Link Banner */}
-      <div className="mx-auto max-w-lg px-4 py-3">
+      <div className="mx-auto max-w-lg px-4 pt-3">
         <div className="flex items-center justify-between rounded-xl bg-primary-50 px-4 py-3">
           <div className="min-w-0 flex-1">
             <p className="text-xs text-primary-600">{t('inviteLink')}</p>
@@ -131,6 +144,24 @@ export function GroupPage() {
           </Button>
         </div>
       </div>
+
+      {/* Expiration Warning */}
+      {remainingDays !== null && (
+        <div className="mx-auto max-w-lg px-4 pt-2 pb-3">
+          <div className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm ${
+            remainingDays <= 3
+              ? 'bg-red-50 text-red-700'
+              : remainingDays <= 7
+              ? 'bg-amber-50 text-amber-700'
+              : 'bg-gray-100 text-gray-600'
+          }`}>
+            <Clock className="size-4" />
+            <span>
+              {t('expiresIn', { days: remainingDays.toString() })}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="mx-auto max-w-lg px-4">
