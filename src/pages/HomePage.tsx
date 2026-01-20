@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, UserPlus, Users, Globe } from 'lucide-react'
+import { Plus, UserPlus, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -13,6 +13,13 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useGroups } from '@/hooks/useGroups'
 import { useTranslation } from '@/hooks/useTranslation'
 import type { Language } from '@/stores/language-store'
@@ -58,36 +65,41 @@ export function HomePage() {
     }
   }
 
-  const languages: { code: Language; label: string }[] = [
-    { code: 'zh-TW', label: '中文' },
-    { code: 'en', label: 'EN' },
-    { code: 'ja', label: '日本語' },
-    { code: 'ko', label: '한국어' },
-    { code: 'es', label: 'ES' },
+  const languages: { code: Language; label: string; flag: string }[] = [
+    { code: 'zh-TW', label: '中文', flag: '🇹🇼' },
+    { code: 'en', label: 'English', flag: '🇺🇸' },
+    { code: 'ja', label: '日本語', flag: '🇯🇵' },
+    { code: 'ko', label: '한국어', flag: '🇰🇷' },
+    { code: 'es', label: 'Español', flag: '🇪🇸' },
   ]
 
-  const cycleLanguage = () => {
-    const currentIndex = languages.findIndex((l) => l.code === language)
-    const nextIndex = (currentIndex + 1) % languages.length
-    setLanguage(languages[nextIndex].code)
-  }
-
-  const currentLangLabel = languages.find((l) => l.code === language)?.label || 'EN'
+  const currentLang = languages.find((l) => l.code === language)
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto max-w-lg px-4 py-8">
         {/* Language Selector */}
         <div className="mb-4 flex justify-end">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2 text-gray-500"
-            onClick={cycleLanguage}
-          >
-            <Globe className="size-4" />
-            <span>{currentLangLabel}</span>
-          </Button>
+          <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
+            <SelectTrigger className="w-auto h-9 gap-2 border-none bg-transparent shadow-none">
+              <SelectValue>
+                <span className="flex items-center gap-2">
+                  <span>{currentLang?.flag}</span>
+                  <span className="text-gray-600">{currentLang?.label}</span>
+                </span>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent align="end">
+              {languages.map((lang) => (
+                <SelectItem key={lang.code} value={lang.code}>
+                  <span className="flex items-center gap-2">
+                    <span>{lang.flag}</span>
+                    <span>{lang.label}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <header className="mb-8 text-center">
