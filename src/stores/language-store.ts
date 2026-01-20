@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type Language = 'zh-TW' | 'en'
+export type Language = 'zh-TW' | 'en' | 'ja' | 'ko' | 'es'
 
 interface LanguageState {
   language: Language
@@ -12,6 +12,15 @@ function detectBrowserLanguage(): Language {
   const browserLang = navigator.language || navigator.languages?.[0] || 'en'
   if (browserLang.startsWith('zh')) {
     return 'zh-TW'
+  }
+  if (browserLang.startsWith('ja')) {
+    return 'ja'
+  }
+  if (browserLang.startsWith('ko')) {
+    return 'ko'
+  }
+  if (browserLang.startsWith('es')) {
+    return 'es'
   }
   return 'en'
 }

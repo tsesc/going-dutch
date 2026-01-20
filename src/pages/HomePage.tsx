@@ -58,10 +58,21 @@ export function HomePage() {
     }
   }
 
-  const toggleLanguage = () => {
-    const newLang: Language = language === 'zh-TW' ? 'en' : 'zh-TW'
-    setLanguage(newLang)
+  const languages: { code: Language; label: string }[] = [
+    { code: 'zh-TW', label: '中文' },
+    { code: 'en', label: 'EN' },
+    { code: 'ja', label: '日本語' },
+    { code: 'ko', label: '한국어' },
+    { code: 'es', label: 'ES' },
+  ]
+
+  const cycleLanguage = () => {
+    const currentIndex = languages.findIndex((l) => l.code === language)
+    const nextIndex = (currentIndex + 1) % languages.length
+    setLanguage(languages[nextIndex].code)
   }
+
+  const currentLangLabel = languages.find((l) => l.code === language)?.label || 'EN'
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -72,10 +83,10 @@ export function HomePage() {
             variant="ghost"
             size="sm"
             className="gap-2 text-gray-500"
-            onClick={toggleLanguage}
+            onClick={cycleLanguage}
           >
             <Globe className="size-4" />
-            <span>{language === 'zh-TW' ? 'EN' : '中文'}</span>
+            <span>{currentLangLabel}</span>
           </Button>
         </div>
 
