@@ -1,13 +1,16 @@
-import { ArrowRight, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Circle } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import type { Member, Expense } from '@/types'
 import { useTranslation } from '@/hooks/useTranslation'
+import { useUserStore } from '@/stores/user-store'
+import { useParams } from 'react-router-dom'
 
 interface SettlementProps {
   members: Member[]
   expenses: Expense[]
+  onMarkPaid?: (fromId: string, toId: string) => void
+  getSettlementStatus?: (fromId: string, toId: string) => boolean
 }
 
 interface Transaction {
@@ -30,11 +33,18 @@ function calculateSettlements(
     // Add what the payer paid
     balances[expense.paidBy] += expense.amount
 
-    // Subtract what each person owes
-    const share = expense.amount / expense.splitWith.length
-    expense.splitWith.forEach((memberId) => {
-      balances[memberId] -= share
-    })
+    // Subtract what each person owes (use customSplit if available)
+    if (expense.customSplit && expense.splitMode === 'custom') {
+      Object.entries(expense.customSplit).forEach(([memberId, amount]) => {
+        balances[memberId] -= amount
+      })
+    } else {
+      // Fallback to equal split
+      const share = expense.amount / expense.splitWith.length
+      expense.splitWith.forEach((memberId) => {
+        balances[memberId] -= share
+      })
+    }
   })
 
   // Separate into creditors (positive balance) and debtors (negative balance)
@@ -82,8 +92,12 @@ function calculateSettlements(
   return transactions
 }
 
-export function Settlement({ members, expenses }: SettlementProps) {
-  const { t, language } = useTranslation()
+export function Settlement({ members, expenses, onMarkPaid, getSettlementStatus }: SettlementProps) {
+  const { t } = useTranslation()
+  const { groupId } = useParams<{ groupId: string }>()
+  const { getMemberId } = useUserStore()
+  const currentMemberId = groupId ? getMemberId(groupId) : undefined
+
   const transactions = calculateSettlements(members, expenses)
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0)
   const perPersonAverage = members.length > 0 ? totalExpenses / members.length : 0
@@ -99,6 +113,12 @@ export function Settlement({ members, expenses }: SettlementProps) {
     )
   }
 
+  // Count paid vs unpaid transactions
+  const paidCount = transactions.filter(
+    (tx) => getSettlementStatus?.(tx.from.id, tx.to.id)
+  ).length
+  const allPaid = paidCount === transactions.length && transactions.length > 0
+
   return (
     <div className="space-y-6">
       {/* Summary */}
@@ -112,9 +132,7 @@ export function Settlement({ members, expenses }: SettlementProps) {
               </p>
             </div>
             <div>
-              <p className="text-sm text-primary-100">
-                {language === 'zh-TW' ? '人均' : 'Per person'}
-              </p>
+              <p className="text-sm text-primary-100">{t('perPerson')}</p>
               <p className="text-2xl font-bold">
                 ${Math.round(perPersonAverage).toLocaleString()}
               </p>
@@ -125,8 +143,15 @@ export function Settlement({ members, expenses }: SettlementProps) {
 
       {/* Transactions */}
       <div>
-        <h3 className="mb-3 text-sm font-medium text-gray-500">{t('settlementTitle')}</h3>
-        {transactions.length === 0 ? (
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-sm font-medium text-gray-500">{t('settlementTitle')}</h3>
+          {transactions.length > 0 && (
+            <span className="text-xs text-gray-400">
+              {paidCount}/{transactions.length} {t('completed')}
+            </span>
+          )}
+        </div>
+        {transactions.length === 0 || allPaid ? (
           <Card>
             <CardContent className="flex items-center justify-center gap-2 py-8">
               <CheckCircle2 className="size-5 text-green-500" />
@@ -135,47 +160,71 @@ export function Settlement({ members, expenses }: SettlementProps) {
           </Card>
         ) : (
           <div className="space-y-3">
-            {transactions.map((tx, index) => (
-              <Card key={index}>
-                <CardContent className="flex items-center gap-3 p-4">
-                  <Avatar
-                    className="size-10"
-                    style={{ backgroundColor: tx.from.color }}
-                  >
-                    <AvatarFallback
-                      className="text-white text-sm font-medium"
+            {transactions.map((tx, index) => {
+              const isPaid = getSettlementStatus?.(tx.from.id, tx.to.id) || false
+              const isReceiver = currentMemberId === tx.to.id
+
+              return (
+                <Card key={index} className={isPaid ? 'opacity-60' : ''}>
+                  <CardContent className="flex items-center gap-3 p-4">
+                    <Avatar
+                      className="size-10"
                       style={{ backgroundColor: tx.from.color }}
                     >
-                      {tx.from.name.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
+                      <AvatarFallback
+                        className="text-white text-sm font-medium"
+                        style={{ backgroundColor: tx.from.color }}
+                      >
+                        {tx.from.name.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
 
-                  <div className="flex flex-1 items-center gap-2">
-                    <span className="font-medium">{tx.from.name}</span>
-                    <ArrowRight className="size-4 text-gray-400" />
-                    <span className="font-medium">{tx.to.name}</span>
-                  </div>
+                    <div className="flex flex-1 flex-col">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{tx.from.name}</span>
+                        <ArrowRight className="size-4 text-gray-400" />
+                        <span className="font-medium">{tx.to.name}</span>
+                      </div>
+                      <p className={`text-lg font-bold ${isPaid ? 'text-gray-400 line-through' : 'text-primary-600'}`}>
+                        ${tx.amount.toLocaleString()}
+                      </p>
+                    </div>
 
-                  <div className="text-right">
-                    <p className="font-bold text-primary-600">
-                      ${tx.amount.toLocaleString()}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    {/* Mark as paid button - only receiver can click */}
+                    {onMarkPaid && (
+                      <button
+                        type="button"
+                        onClick={() => onMarkPaid(tx.from.id, tx.to.id)}
+                        disabled={!isReceiver && !isPaid}
+                        className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                          isPaid
+                            ? 'bg-green-100 text-green-700'
+                            : isReceiver
+                            ? 'bg-gray-100 text-gray-600 hover:bg-primary-100 hover:text-primary-700'
+                            : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                        }`}
+                        title={isReceiver ? t('markAsPaid') : t('onlyReceiverCanMark')}
+                      >
+                        {isPaid ? (
+                          <>
+                            <CheckCircle2 className="size-4" />
+                            <span>{t('paid')}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Circle className="size-4" />
+                            <span>{t('unpaid')}</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         )}
       </div>
-
-      {/* Actions */}
-      {transactions.length > 0 && (
-        <div className="flex gap-3">
-          <Button variant="outline" className="flex-1">
-            {language === 'zh-TW' ? '分享結算單' : 'Share Settlement'}
-          </Button>
-        </div>
-      )}
     </div>
   )
 }

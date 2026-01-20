@@ -23,7 +23,7 @@ import { AddExpenseDialog } from '@/components/AddExpenseDialog'
 export function GroupPage() {
   const { groupId } = useParams<{ groupId: string }>()
   const navigate = useNavigate()
-  const { group, isLoading: groupLoading } = useGroup(groupId!)
+  const { group, isLoading: groupLoading, markSettlementPaid, getSettlementStatus } = useGroup(groupId!)
   const { expenses, isLoading: expensesLoading, addExpense, deleteExpense } = useExpenses(groupId!)
   const { t } = useTranslation()
   const [showAddExpense, setShowAddExpense] = useState(false)
@@ -164,7 +164,12 @@ export function GroupPage() {
           </TabsContent>
 
           <TabsContent value="settlement">
-            <Settlement members={group.members} expenses={expenses} />
+            <Settlement
+              members={group.members}
+              expenses={expenses}
+              onMarkPaid={markSettlementPaid}
+              getSettlementStatus={getSettlementStatus}
+            />
           </TabsContent>
         </Tabs>
       </div>

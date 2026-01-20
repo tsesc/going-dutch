@@ -35,6 +35,15 @@ export interface Member {
   joinedAt: Timestamp
 }
 
+export interface SettlementRecord {
+  id: string // `${fromId}-${toId}`
+  fromId: string
+  toId: string
+  isPaid: boolean
+  paidAt?: Timestamp
+  markedBy?: string // Member ID who marked it as paid
+}
+
 export interface Group {
   id: string
   name: string
@@ -43,6 +52,7 @@ export interface Group {
   createdBy: string
   members: Member[]
   currency: string
+  settlements?: SettlementRecord[]
 }
 
 export interface Expense {

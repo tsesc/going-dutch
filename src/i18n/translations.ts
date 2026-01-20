@@ -60,6 +60,10 @@ const translations = {
     selectPayer: '選擇付款人',
     splitWith: '分給誰',
     selectAll: '全選',
+    equalSplit: '均分',
+    notIncluded: '未包含',
+    addToSplit: '加入分帳',
+    splitTotal: '分帳總計',
     saveFailed: '儲存失敗，請稍後再試',
 
     // Categories
@@ -81,6 +85,11 @@ const translations = {
     noSettlement: '目前沒有需要結算的款項',
     allSettled: '大家都結清了！',
     shouldPayTo: '應付給',
+    completed: '已完成',
+    paid: '已付',
+    unpaid: '未付',
+    markAsPaid: '標記為已付款',
+    onlyReceiverCanMark: '只有收款人可以標記',
 
     // Join Page
     joinGroupTitle: '加入分帳群組',
@@ -156,6 +165,10 @@ const translations = {
     selectPayer: 'Select payer',
     splitWith: 'Split with',
     selectAll: 'Select All',
+    equalSplit: 'Equal Split',
+    notIncluded: 'Not included',
+    addToSplit: 'Add to split',
+    splitTotal: 'Split total',
     saveFailed: 'Failed to save. Please try again.',
 
     // Categories
@@ -177,6 +190,11 @@ const translations = {
     noSettlement: 'No settlements needed',
     allSettled: 'All settled up!',
     shouldPayTo: 'owes',
+    completed: 'completed',
+    paid: 'Paid',
+    unpaid: 'Unpaid',
+    markAsPaid: 'Mark as paid',
+    onlyReceiverCanMark: 'Only receiver can mark as paid',
 
     // Join Page
     joinGroupTitle: 'Join Group',
@@ -252,6 +270,10 @@ const translations = {
     selectPayer: '支払者を選択',
     splitWith: '割り勘する人',
     selectAll: '全選択',
+    equalSplit: '均等に分ける',
+    notIncluded: '含まれていない',
+    addToSplit: '割り勘に追加',
+    splitTotal: '割り勘合計',
     saveFailed: '保存に失敗しました。再度お試しください。',
 
     // Categories
@@ -273,6 +295,11 @@ const translations = {
     noSettlement: '精算の必要はありません',
     allSettled: '全員精算済み！',
     shouldPayTo: 'に支払う',
+    completed: '完了',
+    paid: '支払済',
+    unpaid: '未払い',
+    markAsPaid: '支払済にする',
+    onlyReceiverCanMark: '受取人のみ確認できます',
 
     // Join Page
     joinGroupTitle: 'グループに参加',
@@ -348,6 +375,10 @@ const translations = {
     selectPayer: '결제자 선택',
     splitWith: '나눌 사람',
     selectAll: '전체 선택',
+    equalSplit: '균등 분배',
+    notIncluded: '미포함',
+    addToSplit: '분배에 추가',
+    splitTotal: '분배 합계',
     saveFailed: '저장에 실패했습니다. 다시 시도해주세요.',
 
     // Categories
@@ -369,6 +400,11 @@ const translations = {
     noSettlement: '정산할 내역이 없습니다',
     allSettled: '모두 정산 완료!',
     shouldPayTo: '에게 지불',
+    completed: '완료',
+    paid: '완료',
+    unpaid: '미완료',
+    markAsPaid: '완료로 표시',
+    onlyReceiverCanMark: '수령인만 표시할 수 있습니다',
 
     // Join Page
     joinGroupTitle: '그룹 참여',
@@ -444,6 +480,10 @@ const translations = {
     selectPayer: 'Seleccionar pagador',
     splitWith: 'Dividir con',
     selectAll: 'Seleccionar todo',
+    equalSplit: 'División igual',
+    notIncluded: 'No incluido',
+    addToSplit: 'Añadir a división',
+    splitTotal: 'Total dividido',
     saveFailed: 'Error al guardar. Inténtalo de nuevo.',
 
     // Categories
@@ -465,6 +505,11 @@ const translations = {
     noSettlement: 'No hay liquidaciones pendientes',
     allSettled: '¡Todo liquidado!',
     shouldPayTo: 'debe a',
+    completed: 'completado',
+    paid: 'Pagado',
+    unpaid: 'Pendiente',
+    markAsPaid: 'Marcar como pagado',
+    onlyReceiverCanMark: 'Solo el receptor puede marcar',
 
     // Join Page
     joinGroupTitle: 'Unirse al grupo',
