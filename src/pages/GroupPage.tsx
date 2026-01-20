@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useGroup } from '@/hooks/useGroup'
 import { useExpenses } from '@/hooks/useExpenses'
+import { useTranslation } from '@/hooks/useTranslation'
 import { ExpenseList } from '@/components/ExpenseList'
 import { MemberList } from '@/components/MemberList'
 import { Settlement } from '@/components/Settlement'
@@ -24,6 +25,7 @@ export function GroupPage() {
   const navigate = useNavigate()
   const { group, isLoading: groupLoading } = useGroup(groupId!)
   const { expenses, isLoading: expensesLoading, addExpense, deleteExpense } = useExpenses(groupId!)
+  const { t } = useTranslation()
   const [showAddExpense, setShowAddExpense] = useState(false)
   const [copied, setCopied] = useState(false)
 
@@ -36,7 +38,7 @@ export function GroupPage() {
   const getShareText = () => {
     if (!group) return ''
     const joinLink = getJoinLink()
-    return `來加入「${group.name}」分帳群組！\n\n點擊連結加入：\n${joinLink}`
+    return t('shareTextWithLink', { groupName: group.name, link: joinLink })
   }
 
   const handleCopyLink = async () => {
@@ -50,8 +52,8 @@ export function GroupPage() {
     if (!group) return
     const joinLink = getJoinLink()
     const shareData = {
-      title: `加入 ${group.name}`,
-      text: `來加入「${group.name}」分帳群組！`,
+      title: `${t('shareTitle')} ${group.name}`,
+      text: t('shareText', { groupName: group.name }),
       url: joinLink,
     }
     if (navigator.share) {
@@ -72,8 +74,8 @@ export function GroupPage() {
   if (!group) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-gray-50 px-4">
-        <p className="text-gray-500">找不到此群組</p>
-        <Button onClick={() => navigate('/')}>返回首頁</Button>
+        <p className="text-gray-500">{t('groupNotFound')}</p>
+        <Button onClick={() => navigate('/')}>{t('backToHome')}</Button>
       </div>
     )
   }
@@ -96,7 +98,7 @@ export function GroupPage() {
           <div className="flex-1 min-w-0">
             <h1 className="truncate font-semibold">{group.name}</h1>
             <p className="text-xs text-gray-500">
-              {group.members.length} 位成員 · 總支出 ${totalExpenses.toLocaleString()}
+              {group.members.length} {t('members')} · {t('totalExpense')} ${totalExpenses.toLocaleString()}
             </p>
           </div>
           <Button variant="ghost" size="icon" onClick={handleShare}>
@@ -109,7 +111,7 @@ export function GroupPage() {
       <div className="mx-auto max-w-lg px-4 py-3">
         <div className="flex items-center justify-between rounded-xl bg-primary-50 px-4 py-3">
           <div className="min-w-0 flex-1">
-            <p className="text-xs text-primary-600">邀請連結</p>
+            <p className="text-xs text-primary-600">{t('inviteLink')}</p>
             <p className="truncate font-mono text-sm text-primary-700">
               {getJoinLink()}
             </p>
@@ -125,7 +127,7 @@ export function GroupPage() {
             ) : (
               <Copy className="mr-1 size-4" />
             )}
-            {copied ? '已複製' : '複製'}
+            {copied ? t('copied') : t('copy')}
           </Button>
         </div>
       </div>
@@ -136,15 +138,15 @@ export function GroupPage() {
           <TabsList className="w-full">
             <TabsTrigger value="expenses" className="flex-1 gap-1.5">
               <Receipt className="size-4" />
-              <span>帳單</span>
+              <span>{t('expenses')}</span>
             </TabsTrigger>
             <TabsTrigger value="members" className="flex-1 gap-1.5">
               <Users className="size-4" />
-              <span>成員</span>
+              <span>{t('membersTab')}</span>
             </TabsTrigger>
             <TabsTrigger value="settlement" className="flex-1 gap-1.5">
               <Calculator className="size-4" />
-              <span>結算</span>
+              <span>{t('settlement')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -175,7 +177,7 @@ export function GroupPage() {
           onClick={() => setShowAddExpense(true)}
         >
           <Plus className="size-5" />
-          新增帳單
+          {t('addExpense')}
         </Button>
       </div>
 

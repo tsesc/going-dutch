@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
 import type { Member, Expense } from '@/types'
+import { useTranslation } from '@/hooks/useTranslation'
 
 interface MemberListProps {
   members: Member[]
@@ -8,6 +9,8 @@ interface MemberListProps {
 }
 
 export function MemberList({ members, expenses }: MemberListProps) {
+  const { t, language } = useTranslation()
+
   const getMemberStats = (memberId: string) => {
     const paid = expenses
       .filter((e) => e.paidBy === memberId)
@@ -45,8 +48,8 @@ export function MemberList({ members, expenses }: MemberListProps) {
               <div className="flex-1 min-w-0">
                 <p className="font-semibold truncate">{member.name}</p>
                 <div className="flex gap-4 text-sm text-gray-500">
-                  <span>已付 ${stats.paid.toLocaleString()}</span>
-                  <span>應付 ${Math.round(stats.owed).toLocaleString()}</span>
+                  <span>{t('totalPaid')} ${stats.paid.toLocaleString()}</span>
+                  <span>{t('shouldPay')} ${Math.round(stats.owed).toLocaleString()}</span>
                 </div>
               </div>
 
@@ -59,7 +62,9 @@ export function MemberList({ members, expenses }: MemberListProps) {
                   {stats.net >= 0 ? '+' : ''}${Math.round(stats.net).toLocaleString()}
                 </p>
                 <p className="text-xs text-gray-400">
-                  {stats.net >= 0 ? '可收回' : '需支付'}
+                  {stats.net >= 0
+                    ? (language === 'zh-TW' ? '可收回' : 'to receive')
+                    : (language === 'zh-TW' ? '需支付' : 'to pay')}
                 </p>
               </div>
             </CardContent>

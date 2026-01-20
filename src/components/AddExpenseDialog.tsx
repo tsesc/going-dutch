@@ -18,10 +18,11 @@ import {
 } from '@/components/ui/select'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import type { Member, Category } from '@/types'
-import { CATEGORY_LABELS, CATEGORY_ICONS } from '@/types'
+import { CATEGORY_ICONS } from '@/types'
 import type { AddExpenseInput } from '@/hooks/useExpenses'
 import { useUserStore } from '@/stores/user-store'
 import { useParams } from 'react-router-dom'
+import { useTranslation } from '@/hooks/useTranslation'
 
 interface AddExpenseDialogProps {
   open: boolean
@@ -48,6 +49,7 @@ export function AddExpenseDialog({
   const { groupId } = useParams<{ groupId: string }>()
   const { getMemberId } = useUserStore()
   const currentMemberId = groupId ? getMemberId(groupId) : undefined
+  const { t } = useTranslation()
 
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
@@ -55,6 +57,18 @@ export function AddExpenseDialog({
   const [paidBy, setPaidBy] = useState('')
   const [splitWith, setSplitWith] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const getCategoryLabel = (cat: Category) => {
+    const labels: Record<Category, string> = {
+      food: t('categoryFood'),
+      transport: t('categoryTransport'),
+      lodging: t('categoryLodging'),
+      activity: t('categoryActivity'),
+      shopping: t('categoryShopping'),
+      other: t('categoryOther'),
+    }
+    return labels[cat]
+  }
 
   // Update paidBy and splitWith when dialog opens or members change
   useEffect(() => {
@@ -105,7 +119,7 @@ export function AddExpenseDialog({
       onOpenChange(false)
     } catch (err) {
       console.error('Failed to add expense:', err)
-      setError(err instanceof Error ? err.message : '儲存失敗，請稍後再試')
+      setError(err instanceof Error ? err.message : t('saveFailed'))
     } finally {
       setIsSubmitting(false)
     }
@@ -120,13 +134,13 @@ export function AddExpenseDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>新增帳單</DialogTitle>
+          <DialogTitle>{t('addExpenseTitle')}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-5">
           {/* Amount */}
           <div className="space-y-2">
-            <Label htmlFor="amount">金額</Label>
+            <Label htmlFor="amount">{t('amount')}</Label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                 $
@@ -145,10 +159,10 @@ export function AddExpenseDialog({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">描述</Label>
+            <Label htmlFor="description">{t('description')}</Label>
             <Input
               id="description"
-              placeholder="例如：晚餐、計程車"
+              placeholder={t('descriptionPlaceholder')}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
@@ -156,7 +170,7 @@ export function AddExpenseDialog({
 
           {/* Category */}
           <div className="space-y-2">
-            <Label>分類</Label>
+            <Label>{t('category')}</Label>
             <div className="grid grid-cols-3 gap-2">
               {CATEGORIES.map((cat) => (
                 <button
@@ -170,7 +184,7 @@ export function AddExpenseDialog({
                   }`}
                 >
                   <span>{CATEGORY_ICONS[cat]}</span>
-                  <span>{CATEGORY_LABELS[cat]}</span>
+                  <span>{getCategoryLabel(cat)}</span>
                 </button>
               ))}
             </div>
@@ -178,10 +192,10 @@ export function AddExpenseDialog({
 
           {/* Paid By */}
           <div className="space-y-2">
-            <Label>誰付的</Label>
+            <Label>{t('whoPaid')}</Label>
             <Select value={paidBy} onValueChange={setPaidBy}>
               <SelectTrigger>
-                <SelectValue placeholder="選擇付款人" />
+                <SelectValue placeholder={t('selectPayer')} />
               </SelectTrigger>
               <SelectContent>
                 {members.map((member) => (
@@ -202,7 +216,7 @@ export function AddExpenseDialog({
           {/* Split With */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>分給誰</Label>
+              <Label>{t('splitWith')}</Label>
               <Button
                 type="button"
                 variant="ghost"
@@ -210,7 +224,7 @@ export function AddExpenseDialog({
                 onClick={handleSelectAll}
                 className="h-auto py-1 text-xs text-primary-600"
               >
-                全選
+                {t('selectAll')}
               </Button>
             </div>
             <div className="space-y-2">
@@ -261,7 +275,7 @@ export function AddExpenseDialog({
             className="flex-1"
             onClick={() => onOpenChange(false)}
           >
-            取消
+            {t('cancel')}
           </Button>
           <Button
             className="flex-1"
@@ -275,7 +289,7 @@ export function AddExpenseDialog({
               isSubmitting
             }
           >
-            {isSubmitting ? '儲存中...' : '儲存'}
+            {isSubmitting ? t('saving') : t('save')}
           </Button>
         </div>
       </DialogContent>

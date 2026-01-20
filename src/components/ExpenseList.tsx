@@ -3,7 +3,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import type { Expense, Member } from '@/types'
-import { CATEGORY_ICONS, CATEGORY_LABELS } from '@/types'
+import { CATEGORY_ICONS } from '@/types'
+import { useTranslation } from '@/hooks/useTranslation'
 
 interface ExpenseListProps {
   expenses: Expense[]
@@ -18,18 +19,31 @@ export function ExpenseList({
   isLoading,
   onDelete,
 }: ExpenseListProps) {
+  const { t, language } = useTranslation()
   const getMember = (id: string) => members.find((m) => m.id === id)
+
+  const getCategoryLabel = (category: string) => {
+    const labels: Record<string, string> = {
+      food: t('categoryFood'),
+      transport: t('categoryTransport'),
+      lodging: t('categoryLodging'),
+      activity: t('categoryActivity'),
+      shopping: t('categoryShopping'),
+      other: t('categoryOther'),
+    }
+    return labels[category] || category
+  }
 
   const formatDate = (timestamp: { toDate: () => Date }) => {
     const date = timestamp.toDate()
-    return date.toLocaleDateString('zh-TW', {
+    return date.toLocaleDateString(language === 'zh-TW' ? 'zh-TW' : 'en-US', {
       month: 'short',
       day: 'numeric',
     })
   }
 
   const handleDelete = async (expenseId: string) => {
-    if (confirm('確定要刪除這筆帳單嗎？')) {
+    if (confirm(t('confirmDelete'))) {
       await onDelete(expenseId)
     }
   }
@@ -58,8 +72,8 @@ export function ExpenseList({
       <Card className="border-dashed">
         <CardContent className="flex flex-col items-center gap-2 py-12 text-center">
           <Receipt className="size-12 text-gray-300" />
-          <p className="text-gray-500">還沒有帳單</p>
-          <p className="text-sm text-gray-400">點擊下方按鈕新增第一筆帳單</p>
+          <p className="text-gray-500">{t('noExpenses')}</p>
+          <p className="text-sm text-gray-400">{t('addFirstExpenseHint')}</p>
         </CardContent>
       </Card>
     )
@@ -96,9 +110,9 @@ export function ExpenseList({
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <span>{payer?.name} 付款</span>
+                  <span>{payer?.name} {t('paidBy')}</span>
                   <span>·</span>
-                  <span>{splitCount} 人分攤</span>
+                  <span>{splitCount} {t('splitCount')}</span>
                   <span>·</span>
                   <span>{formatDate(expense.date)}</span>
                 </div>
@@ -109,7 +123,7 @@ export function ExpenseList({
                   ${expense.amount.toLocaleString()}
                 </p>
                 <p className="text-xs text-gray-400">
-                  {CATEGORY_LABELS[expense.category]}
+                  {getCategoryLabel(expense.category)}
                 </p>
               </div>
 

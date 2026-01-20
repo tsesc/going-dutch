@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, UserPlus, Users } from 'lucide-react'
+import { Plus, UserPlus, Users, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -14,10 +14,13 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useGroups } from '@/hooks/useGroups'
+import { useTranslation } from '@/hooks/useTranslation'
+import type { Language } from '@/stores/language-store'
 
 export function HomePage() {
   const navigate = useNavigate()
   const { groups, createGroup, joinGroup, isLoading } = useGroups()
+  const { t, language, setLanguage } = useTranslation()
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showJoinDialog, setShowJoinDialog] = useState(false)
   const [groupName, setGroupName] = useState('')
@@ -55,12 +58,30 @@ export function HomePage() {
     }
   }
 
+  const toggleLanguage = () => {
+    const newLang: Language = language === 'zh-TW' ? 'en' : 'zh-TW'
+    setLanguage(newLang)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto max-w-lg px-4 py-8">
+        {/* Language Selector */}
+        <div className="mb-4 flex justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2 text-gray-500"
+            onClick={toggleLanguage}
+          >
+            <Globe className="size-4" />
+            <span>{language === 'zh-TW' ? 'EN' : '中文'}</span>
+          </Button>
+        </div>
+
         <header className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Going Dutch</h1>
-          <p className="mt-2 text-gray-500">輕鬆分帳，旅遊無憂</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('appName')}</h1>
+          <p className="mt-2 text-gray-500">{t('appTagline')}</p>
         </header>
 
         <div className="mb-8 grid grid-cols-2 gap-4">
@@ -70,7 +91,7 @@ export function HomePage() {
             onClick={() => setShowCreateDialog(true)}
           >
             <Plus className="size-6" />
-            <span>建立群組</span>
+            <span>{t('createGroup')}</span>
           </Button>
           <Button
             size="lg"
@@ -79,7 +100,7 @@ export function HomePage() {
             onClick={() => setShowJoinDialog(true)}
           >
             <UserPlus className="size-6" />
-            <span>加入群組</span>
+            <span>{t('joinGroup')}</span>
           </Button>
         </div>
 
@@ -96,7 +117,7 @@ export function HomePage() {
           </div>
         ) : groups.length > 0 ? (
           <div className="space-y-4">
-            <h2 className="text-sm font-medium text-gray-500">我的群組</h2>
+            <h2 className="text-sm font-medium text-gray-500">{t('myGroups')}</h2>
             {groups.map((group) => (
               <Card
                 key={group.id}
@@ -110,7 +131,7 @@ export function HomePage() {
                   <div className="flex-1">
                     <h3 className="font-semibold">{group.name}</h3>
                     <p className="text-sm text-gray-500">
-                      {group.members.length} 位成員
+                      {group.members.length} {t('members')}
                     </p>
                   </div>
                 </CardContent>
@@ -121,8 +142,8 @@ export function HomePage() {
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center gap-2 py-12 text-center">
               <Users className="size-12 text-gray-300" />
-              <p className="text-gray-500">還沒有群組</p>
-              <p className="text-sm text-gray-400">建立或加入一個群組開始分帳</p>
+              <p className="text-gray-500">{t('noGroups')}</p>
+              <p className="text-sm text-gray-400">{t('createOrJoinHint')}</p>
             </CardContent>
           </Card>
         )}
@@ -132,26 +153,28 @@ export function HomePage() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>建立新群組</DialogTitle>
+            <DialogTitle>{t('createGroup')}</DialogTitle>
             <DialogDescription>
-              為你的旅行或活動建立一個分帳群組
+              {language === 'zh-TW'
+                ? '為你的旅行或活動建立一個分帳群組'
+                : 'Create a group for your trip or event'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="groupName">群組名稱</Label>
+              <Label htmlFor="groupName">{t('groupName')}</Label>
               <Input
                 id="groupName"
-                placeholder="例如：日本東京行 2024"
+                placeholder={t('groupNamePlaceholder')}
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="nickname">你的暱稱</Label>
+              <Label htmlFor="nickname">{t('nickname')}</Label>
               <Input
                 id="nickname"
-                placeholder="在群組中顯示的名字"
+                placeholder={t('nicknamePlaceholder')}
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
               />
@@ -162,13 +185,13 @@ export function HomePage() {
               variant="outline"
               onClick={() => setShowCreateDialog(false)}
             >
-              取消
+              {t('cancel')}
             </Button>
             <Button
               onClick={handleCreateGroup}
               disabled={!groupName.trim() || !nickname.trim() || isSubmitting}
             >
-              {isSubmitting ? '建立中...' : '建立群組'}
+              {isSubmitting ? t('creating') : t('createGroup')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -178,26 +201,30 @@ export function HomePage() {
       <Dialog open={showJoinDialog} onOpenChange={setShowJoinDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>加入群組</DialogTitle>
-            <DialogDescription>輸入邀請碼加入現有群組</DialogDescription>
+            <DialogTitle>{t('joinGroup')}</DialogTitle>
+            <DialogDescription>
+              {language === 'zh-TW'
+                ? '輸入邀請碼加入現有群組'
+                : 'Enter the invite code to join an existing group'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="inviteCode">邀請碼</Label>
+              <Label htmlFor="inviteCode">{t('inviteCode')}</Label>
               <Input
                 id="inviteCode"
-                placeholder="輸入 6 位數邀請碼"
+                placeholder={t('inviteCodePlaceholder')}
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                maxLength={6}
+                maxLength={8}
                 className="text-center text-lg tracking-widest"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="joinNickname">你的暱稱</Label>
+              <Label htmlFor="joinNickname">{t('nickname')}</Label>
               <Input
                 id="joinNickname"
-                placeholder="在群組中顯示的名字"
+                placeholder={t('nicknamePlaceholder')}
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
               />
@@ -205,15 +232,15 @@ export function HomePage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowJoinDialog(false)}>
-              取消
+              {t('cancel')}
             </Button>
             <Button
               onClick={handleJoinGroup}
               disabled={
-                inviteCode.length !== 6 || !nickname.trim() || isSubmitting
+                inviteCode.length !== 8 || !nickname.trim() || isSubmitting
               }
             >
-              {isSubmitting ? '加入中...' : '加入群組'}
+              {isSubmitting ? t('joining') : t('joinGroup')}
             </Button>
           </DialogFooter>
         </DialogContent>

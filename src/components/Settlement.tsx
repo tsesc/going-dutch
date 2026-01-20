@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import type { Member, Expense } from '@/types'
+import { useTranslation } from '@/hooks/useTranslation'
 
 interface SettlementProps {
   members: Member[]
@@ -82,6 +83,7 @@ function calculateSettlements(
 }
 
 export function Settlement({ members, expenses }: SettlementProps) {
+  const { t, language } = useTranslation()
   const transactions = calculateSettlements(members, expenses)
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0)
   const perPersonAverage = members.length > 0 ? totalExpenses / members.length : 0
@@ -91,7 +93,7 @@ export function Settlement({ members, expenses }: SettlementProps) {
       <Card className="border-dashed">
         <CardContent className="flex flex-col items-center gap-2 py-12 text-center">
           <CheckCircle2 className="size-12 text-gray-300" />
-          <p className="text-gray-500">還沒有帳單需要結算</p>
+          <p className="text-gray-500">{t('noSettlement')}</p>
         </CardContent>
       </Card>
     )
@@ -104,13 +106,15 @@ export function Settlement({ members, expenses }: SettlementProps) {
         <CardContent className="p-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-primary-100">總支出</p>
+              <p className="text-sm text-primary-100">{t('totalExpense')}</p>
               <p className="text-2xl font-bold">
                 ${totalExpenses.toLocaleString()}
               </p>
             </div>
             <div>
-              <p className="text-sm text-primary-100">人均</p>
+              <p className="text-sm text-primary-100">
+                {language === 'zh-TW' ? '人均' : 'Per person'}
+              </p>
               <p className="text-2xl font-bold">
                 ${Math.round(perPersonAverage).toLocaleString()}
               </p>
@@ -121,12 +125,12 @@ export function Settlement({ members, expenses }: SettlementProps) {
 
       {/* Transactions */}
       <div>
-        <h3 className="mb-3 text-sm font-medium text-gray-500">結算明細</h3>
+        <h3 className="mb-3 text-sm font-medium text-gray-500">{t('settlementTitle')}</h3>
         {transactions.length === 0 ? (
           <Card>
             <CardContent className="flex items-center justify-center gap-2 py-8">
               <CheckCircle2 className="size-5 text-green-500" />
-              <p className="text-gray-600">所有人已結清！</p>
+              <p className="text-gray-600">{t('allSettled')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -168,7 +172,7 @@ export function Settlement({ members, expenses }: SettlementProps) {
       {transactions.length > 0 && (
         <div className="flex gap-3">
           <Button variant="outline" className="flex-1">
-            分享結算單
+            {language === 'zh-TW' ? '分享結算單' : 'Share Settlement'}
           </Button>
         </div>
       )}

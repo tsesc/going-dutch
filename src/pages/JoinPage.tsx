@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useGroups } from '@/hooks/useGroups'
+import { useTranslation } from '@/hooks/useTranslation'
 
 export function JoinPage() {
   const { inviteCode } = useParams<{ inviteCode: string }>()
   const navigate = useNavigate()
   const { joinGroup } = useGroups()
+  const { t } = useTranslation()
   const [nickname, setNickname] = useState('')
   const [isJoining, setIsJoining] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -25,11 +27,11 @@ export function JoinPage() {
       if (groupId) {
         navigate(`/group/${groupId}`)
       } else {
-        setError('找不到此邀請碼對應的群組')
+        setError(t('inviteCodeNotFound'))
       }
     } catch (err) {
       console.error('Failed to join group:', err)
-      setError('加入群組失敗，請稍後再試')
+      setError(t('joinFailed'))
     } finally {
       setIsJoining(false)
     }
@@ -42,18 +44,18 @@ export function JoinPage() {
           <div className="mx-auto mb-2 flex size-16 items-center justify-center rounded-full bg-primary-100">
             <Users className="size-8 text-primary-600" />
           </div>
-          <CardTitle className="text-xl">加入分帳群組</CardTitle>
+          <CardTitle className="text-xl">{t('joinGroupTitle')}</CardTitle>
           <p className="text-sm text-gray-500">
-            邀請碼：<span className="font-mono font-semibold">{inviteCode}</span>
+            {t('inviteCode')}：<span className="font-mono font-semibold">{inviteCode}</span>
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">
-              你的暱稱
+              {t('yourNickname')}
             </label>
             <Input
-              placeholder="輸入你的暱稱"
+              placeholder={t('nicknamePlaceholder')}
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
@@ -71,7 +73,7 @@ export function JoinPage() {
             onClick={handleJoin}
             disabled={!nickname.trim() || isJoining}
           >
-            {isJoining ? '加入中...' : '加入群組'}
+            {isJoining ? t('joining') : t('joinGroup')}
           </Button>
 
           <Button
@@ -79,7 +81,7 @@ export function JoinPage() {
             className="w-full"
             onClick={() => navigate('/')}
           >
-            返回首頁
+            {t('backToHome')}
           </Button>
         </CardContent>
       </Card>
