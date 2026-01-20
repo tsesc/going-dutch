@@ -19,7 +19,7 @@ import { MEMBER_COLORS } from '@/types'
 function generateInviteCode(): string {
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
   let code = ''
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 8; i++) {
     code += chars.charAt(Math.floor(Math.random() * chars.length))
   }
   return code
@@ -105,7 +105,6 @@ export function useGroups() {
     const snapshot = await getDocs(q)
 
     if (snapshot.empty) {
-      alert('找不到此邀請碼對應的群組')
       return null
     }
 

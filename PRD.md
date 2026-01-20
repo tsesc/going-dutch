@@ -33,19 +33,20 @@
 
 #### 1.1 建立群組
 - 輸入群組名稱（例如：「日本東京行 2024」）
-- 自動產生 6 位數邀請碼
+- 自動產生 8 位數邀請碼（增強安全性）
 - 建立者自動成為群組成員
 
 #### 1.2 加入群組
-- 輸入邀請碼加入
+- **透過邀請連結加入**（推薦）：點擊連結 → 輸入暱稱 → 加入
+- 手動輸入邀請碼加入
 - 輸入自己的暱稱（在此群組中的顯示名稱）
-- 可選擇頭像顏色
+- 自動分配頭像顏色
 
 #### 1.3 群組資訊
 - 顯示所有成員列表
 - 顯示群組建立日期
 - 顯示總支出金額
-- 邀請連結分享功能
+- **邀請連結分享**：一鍵複製或分享加入連結（格式：`https://domain.com/join/XXXXXXXX`）
 
 ### 2. 帳單記錄
 
@@ -156,9 +157,29 @@
 - Lighthouse 分數 > 90
 
 ### 安全性
-- Firebase Security Rules 保護資料
-- 只有群組成員可存取群組資料
+- **無需登入設計**：為了便利性，採用匿名使用模式
+- Firebase Security Rules 保護資料（建議規則見下方）
+- 8 位數邀請碼增加暴力破解難度（31^8 ≈ 8520 億組合）
 - 圖片 URL 不可被猜測
+
+#### 建議的 Firestore Security Rules
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /groups/{groupId} {
+      allow read, create: if true;
+      allow update: if true;
+      allow delete: if false;  // 禁止刪除群組
+    }
+    match /expenses/{expenseId} {
+      allow read, create: if true;
+      allow update: if true;
+      allow delete: if false;  // 禁止刪除帳單（防止惡意刪除）
+    }
+  }
+}
+```
 
 ### 可用性
 - 支援 iOS Safari / Android Chrome
@@ -392,6 +413,7 @@ interface Settlement {
 | 結算 | 最終計算誰該付給誰多少錢 |
 
 ### C. 邀請碼格式
-- 6 位數大寫英數字
+- 8 位數大寫英數字（增強安全性）
 - 排除易混淆字元（0, O, I, L, 1）
-- 範例：`A3B7K9`
+- 範例：`A3B7K9XY`
+- 可透過連結分享：`https://going-dutch-master.web.app/join/A3B7K9XY`

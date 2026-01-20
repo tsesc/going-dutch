@@ -27,24 +27,31 @@ export function GroupPage() {
   const [showAddExpense, setShowAddExpense] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  const handleCopyCode = async () => {
+  const getJoinLink = () => {
+    if (!group) return ''
+    const baseUrl = window.location.origin
+    return `${baseUrl}/join/${group.inviteCode}`
+  }
+
+  const handleCopyLink = async () => {
     if (!group) return
-    await navigator.clipboard.writeText(group.inviteCode)
+    await navigator.clipboard.writeText(getJoinLink())
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
   const handleShare = async () => {
     if (!group) return
+    const joinLink = getJoinLink()
     const shareData = {
       title: `加入 ${group.name}`,
-      text: `使用邀請碼 ${group.inviteCode} 加入「${group.name}」分帳群組`,
-      url: window.location.href,
+      text: `點擊連結加入「${group.name}」分帳群組`,
+      url: joinLink,
     }
     if (navigator.share) {
       await navigator.share(shareData)
     } else {
-      handleCopyCode()
+      handleCopyLink()
     }
   }
 
@@ -92,20 +99,20 @@ export function GroupPage() {
         </div>
       </header>
 
-      {/* Invite Code Banner */}
+      {/* Invite Link Banner */}
       <div className="mx-auto max-w-lg px-4 py-3">
         <div className="flex items-center justify-between rounded-xl bg-primary-50 px-4 py-3">
-          <div>
-            <p className="text-xs text-primary-600">邀請碼</p>
-            <p className="font-mono text-lg font-bold tracking-widest text-primary-700">
-              {group.inviteCode}
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-primary-600">邀請連結</p>
+            <p className="truncate font-mono text-sm text-primary-700">
+              {getJoinLink()}
             </p>
           </div>
           <Button
             variant="ghost"
             size="sm"
-            className="text-primary-600 hover:bg-primary-100"
-            onClick={handleCopyCode}
+            className="shrink-0 text-primary-600 hover:bg-primary-100"
+            onClick={handleCopyLink}
           >
             {copied ? (
               <Check className="mr-1 size-4" />
