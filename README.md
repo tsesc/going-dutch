@@ -205,6 +205,33 @@ Firebase 免費方案（Spark）提供：
 - Hosting：10GB/月 傳輸量
 - 對於小型團體使用完全足夠
 
+## 付費功能說明
+
+以下功能需要 Firebase Blaze（付費）方案才能啟用：
+
+### 🕐 資料自動過期（TTL）
+
+程式碼已準備好 `expiresAt` 欄位，但 Firestore TTL 政策需要 Blaze 方案。
+- **現狀**：資料永久保存
+- **啟用後**：資料 14 天後自動刪除
+- **相關程式碼**：
+  - `src/hooks/useGroups.ts` - `getExpirationTimestamp()`
+  - `src/pages/GroupPage.tsx` - 過期倒數 UI（已註解）
+
+### 📷 圖片上傳（Firebase Storage）
+
+目前圖片上傳功能尚未實作，需要：
+- Firebase Storage（Blaze 方案有更高額度）
+- 實作圖片壓縮與上傳邏輯
+- **相關程式碼**：`src/types/index.ts` - Expense 的 `images` 欄位已預留
+
+### 🤝 歡迎貢獻
+
+如果你有興趣協助開發以上功能，歡迎提交 Pull Request：
+- TTL UI 啟用（取消 `GroupPage.tsx` 中的註解）
+- 圖片上傳功能實作
+- 其他功能改進
+
 ## 授權
 
 MIT
