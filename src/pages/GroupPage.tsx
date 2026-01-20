@@ -9,7 +9,7 @@ import {
   Share2,
   Copy,
   Check,
-  Clock,
+  // Clock, // TTL UI disabled - requires Blaze plan
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -83,17 +83,17 @@ export function GroupPage() {
 
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0)
 
-  // Calculate remaining days until expiration
-  const getRemainingDays = () => {
-    if (!group?.expiresAt) return null
-    const expiresAt = group.expiresAt.toDate()
-    const now = new Date()
-    const diffTime = expiresAt.getTime() - now.getTime()
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays
-  }
-
-  const remainingDays = getRemainingDays()
+  // TTL UI disabled - requires Blaze plan for Firestore TTL policies
+  // Uncomment when Blaze plan is enabled
+  // const getRemainingDays = () => {
+  //   if (!group?.expiresAt) return null
+  //   const expiresAt = group.expiresAt.toDate()
+  //   const now = new Date()
+  //   const diffTime = expiresAt.getTime() - now.getTime()
+  //   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  //   return diffDays
+  // }
+  // const remainingDays = getRemainingDays()
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -145,8 +145,9 @@ export function GroupPage() {
         </div>
       </div>
 
-      {/* Expiration Warning */}
-      {remainingDays !== null && (
+      {/* TTL UI disabled - requires Blaze plan for Firestore TTL policies */}
+      {/* Uncomment when Blaze plan is enabled */}
+      {/* {remainingDays !== null && (
         <div className="mx-auto max-w-lg px-4 pt-2 pb-3">
           <div className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm ${
             remainingDays <= 3
@@ -161,7 +162,7 @@ export function GroupPage() {
             </span>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Tabs */}
       <div className="mx-auto max-w-lg px-4">
