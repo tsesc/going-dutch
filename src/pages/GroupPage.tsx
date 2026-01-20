@@ -33,9 +33,15 @@ export function GroupPage() {
     return `${baseUrl}/join/${group.inviteCode}`
   }
 
+  const getShareText = () => {
+    if (!group) return ''
+    const joinLink = getJoinLink()
+    return `來加入「${group.name}」分帳群組！\n\n點擊連結加入：\n${joinLink}`
+  }
+
   const handleCopyLink = async () => {
     if (!group) return
-    await navigator.clipboard.writeText(getJoinLink())
+    await navigator.clipboard.writeText(getShareText())
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -45,7 +51,7 @@ export function GroupPage() {
     const joinLink = getJoinLink()
     const shareData = {
       title: `加入 ${group.name}`,
-      text: `點擊連結加入「${group.name}」分帳群組`,
+      text: `來加入「${group.name}」分帳群組！`,
       url: joinLink,
     }
     if (navigator.share) {
