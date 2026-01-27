@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { doc, onSnapshot, updateDoc, Timestamp } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { db, auth } from '@/lib/firebase'
 import type { Group, SettlementRecord } from '@/types'
 import { useUserStore } from '@/stores/user-store'
 
@@ -71,5 +71,46 @@ export function useGroup(groupId: string) {
     return settlement?.isPaid || false
   }
 
-  return { group, isLoading, markSettlementPaid, getSettlementStatus }
+  const resetSettlements = async () => {
+    if (!group) return
+    await updateDoc(doc(db, 'groups', groupId), {
+      settlements: [],
+    })
+  }
+
+  const removeMember = async (memberId: string): Promise<void> => {
+    if (!group) throw new Error('Group not found')
+
+    const currentAuthUid = auth.currentUser?.uid
+    if (!currentAuthUid) throw new Error('Not authenticated')
+
+    // Find the member to remove
+    const memberToRemove = group.members.find((m) => m.id === memberId)
+    if (!memberToRemove) throw new Error('Member not found')
+
+    // Cannot remove the group creator
+    if (group.createdBy === memberId) {
+      throw new Error('Cannot remove group creator')
+    }
+
+    // Only allow: self-removal OR group creator can remove others
+    const isCreator = group.createdByAuthUid === currentAuthUid
+    const isSelf = memberToRemove.authUid === currentAuthUid
+    if (!isCreator && !isSelf) {
+      throw new Error('Only the group creator can remove other members')
+    }
+
+    // Remove member from arrays
+    const updatedMembers = group.members.filter((m) => m.id !== memberId)
+    const updatedMemberAuthUids = group.memberAuthUids.filter(
+      (uid) => uid !== memberToRemove.authUid
+    )
+
+    await updateDoc(doc(db, 'groups', groupId), {
+      members: updatedMembers,
+      memberAuthUids: updatedMemberAuthUids,
+    })
+  }
+
+  return { group, isLoading, markSettlementPaid, getSettlementStatus, resetSettlements, removeMember }
 }

@@ -11,10 +11,29 @@ import {
   arrayUnion,
   Timestamp,
 } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { db, auth } from '@/lib/firebase'
 import { useUserStore } from '@/stores/user-store'
 import type { Group, Member } from '@/types'
 import { MEMBER_COLORS } from '@/types'
+
+async function getAuthUid(): Promise<string> {
+  // Wait for auth to be ready if not already
+  if (!auth.currentUser) {
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('Auth timeout')), 5000)
+      const unsubscribe = auth.onAuthStateChanged((user) => {
+        if (user) {
+          clearTimeout(timeout)
+          unsubscribe()
+          resolve()
+        }
+      })
+    })
+  }
+  const user = auth.currentUser
+  if (!user) throw new Error('User not authenticated')
+  return user.uid
+}
 
 function generateInviteCode(): string {
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
@@ -78,12 +97,14 @@ export function useGroups() {
   const createGroup = async (name: string, nickname: string): Promise<string> => {
     if (!userId) throw new Error('User not initialized')
 
+    const authUid = await getAuthUid()
     const memberId = `member_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
     const member: Member = {
       id: memberId,
       name: nickname,
       color: getRandomColor([]),
       joinedAt: Timestamp.now(),
+      authUid,
     }
 
     const groupData = {
@@ -91,7 +112,9 @@ export function useGroups() {
       inviteCode: generateInviteCode(),
       createdAt: Timestamp.now(),
       createdBy: memberId,
+      createdByAuthUid: authUid,
       members: [member],
+      memberAuthUids: [authUid],
       currency: 'TWD',
       expiresAt: getExpirationTimestamp(),
     }
@@ -107,6 +130,7 @@ export function useGroups() {
   ): Promise<string | null> => {
     if (!userId) throw new Error('User not initialized')
 
+    const authUid = await getAuthUid()
     const q = query(
       collection(db, 'groups'),
       where('inviteCode', '==', inviteCode)
@@ -120,9 +144,10 @@ export function useGroups() {
     const groupDoc = snapshot.docs[0]
     const group = groupDoc.data() as Omit<Group, 'id'>
 
-    // Check if user already in group
-    const existingMemberId = memberIds[groupDoc.id]
-    if (existingMemberId && group.members.some((m) => m.id === existingMemberId)) {
+    // Check if user already in group (by authUid)
+    const existingMember = group.members.find((m) => m.authUid === authUid)
+    if (existingMember) {
+      setMemberId(groupDoc.id, existingMember.id)
       return groupDoc.id
     }
 
@@ -132,10 +157,12 @@ export function useGroups() {
       name: nickname,
       color: getRandomColor(group.members.map((m) => m.color)),
       joinedAt: Timestamp.now(),
+      authUid,
     }
 
     await updateDoc(doc(db, 'groups', groupDoc.id), {
       members: arrayUnion(member),
+      memberAuthUids: arrayUnion(authUid),
     })
 
     setMemberId(groupDoc.id, memberId)

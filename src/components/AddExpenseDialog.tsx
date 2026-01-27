@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { X } from 'lucide-react'
-import type { Member, Category } from '@/types'
+import type { Member, Category, Expense } from '@/types'
 import { CATEGORY_ICONS } from '@/types'
 import type { AddExpenseInput } from '@/hooks/useExpenses'
 import { useUserStore } from '@/stores/user-store'
@@ -29,6 +29,8 @@ interface AddExpenseDialogProps {
   onOpenChange: (open: boolean) => void
   members: Member[]
   onSubmit: (input: AddExpenseInput) => Promise<string>
+  onUpdate?: (expenseId: string, input: AddExpenseInput) => Promise<void>
+  expense?: Expense | null // For edit mode
 }
 
 const CATEGORIES: Category[] = [
@@ -45,11 +47,15 @@ export function AddExpenseDialog({
   onOpenChange,
   members,
   onSubmit,
+  onUpdate,
+  expense,
 }: AddExpenseDialogProps) {
   const { groupId } = useParams<{ groupId: string }>()
   const { getMemberId } = useUserStore()
   const currentMemberId = groupId ? getMemberId(groupId) : undefined
   const { t } = useTranslation()
+
+  const isEditMode = !!expense
 
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
@@ -77,37 +83,66 @@ export function AddExpenseDialog({
     return Math.round(total / memberCount).toString()
   }, [])
 
-  // Update paidBy and customSplit when dialog opens or members change
+  // Update form when dialog opens - populate from expense if editing
   useEffect(() => {
     if (open) {
-      setPaidBy(currentMemberId || (members.length > 0 ? members[0].id : ''))
-      // Initialize with equal split for all members
-      const equalAmount = calculateEqualSplit(amount, members.length)
-      const initialSplit: Record<string, string> = {}
-      members.forEach((m) => {
-        initialSplit[m.id] = equalAmount
-      })
-      setCustomSplit(initialSplit)
+      if (expense) {
+        // Edit mode: populate from existing expense
+        setAmount(expense.amount.toString())
+        setDescription(expense.description)
+        setCategory(expense.category)
+        setPaidBy(expense.paidBy)
+        // Set customSplit from expense data
+        const splitData: Record<string, string> = {}
+        members.forEach((m) => {
+          if (expense.customSplit && expense.customSplit[m.id] !== undefined) {
+            splitData[m.id] = expense.customSplit[m.id].toString()
+          } else if (expense.splitWith.includes(m.id)) {
+            // If no customSplit but member is in splitWith, calculate equal
+            const equalAmount = Math.round(expense.amount / expense.splitWith.length)
+            splitData[m.id] = equalAmount.toString()
+          } else {
+            splitData[m.id] = ''
+          }
+        })
+        setCustomSplit(splitData)
+      } else {
+        // Add mode: initialize with defaults
+        setAmount('')
+        setDescription('')
+        setCategory('food')
+        setPaidBy(currentMemberId || (members.length > 0 ? members[0].id : ''))
+        // Initialize with all members included (use '1' as placeholder)
+        // When amount changes, the useEffect will recalculate equal split
+        const initialSplit: Record<string, string> = {}
+        members.forEach((m) => {
+          initialSplit[m.id] = '1' // Placeholder to indicate "included"
+        })
+        setCustomSplit(initialSplit)
+      }
     }
-  }, [open, members, currentMemberId, calculateEqualSplit])
+  }, [open, expense, members, currentMemberId])
 
   // Recalculate equal split when amount changes
   useEffect(() => {
-    if (open && amount) {
-      const includedMembers = Object.entries(customSplit).filter(([, val]) => val !== '' && val !== '0')
-      if (includedMembers.length > 0) {
-        const equalAmount = calculateEqualSplit(amount, includedMembers.length)
-        setCustomSplit((prev) => {
-          const updated: Record<string, string> = {}
-          Object.entries(prev).forEach(([id, val]) => {
-            // Only update if member was included (non-zero)
-            updated[id] = val !== '' && val !== '0' ? equalAmount : val
-          })
-          return updated
-        })
-      }
-    }
-  }, [amount])
+    if (!open) return
+
+    // Find members that are "included" (non-empty value)
+    setCustomSplit((prev) => {
+      const includedEntries = Object.entries(prev).filter(([, val]) => val !== '')
+      if (includedEntries.length === 0) return prev
+
+      const total = parseFloat(amount)
+      const equalAmount = isNaN(total) || total <= 0 ? '0' : Math.round(total / includedEntries.length).toString()
+
+      const updated: Record<string, string> = {}
+      Object.entries(prev).forEach(([id, val]) => {
+        // Only update if member was included (non-empty)
+        updated[id] = val !== '' ? equalAmount : val
+      })
+      return updated
+    })
+  }, [amount, open])
 
   const handleSplitAmountChange = (memberId: string, value: string) => {
     setCustomSplit((prev) => ({
@@ -124,7 +159,7 @@ export function AddExpenseDialog({
   }
 
   const handleAddMember = (memberId: string) => {
-    const includedCount = Object.values(customSplit).filter((v) => v !== '' && v !== '0').length
+    const includedCount = Object.values(customSplit).filter((v) => v !== '').length
     const equalAmount = calculateEqualSplit(amount, includedCount + 1)
     setCustomSplit((prev) => ({
       ...prev,
@@ -133,15 +168,27 @@ export function AddExpenseDialog({
   }
 
   const handleEqualSplit = () => {
-    const includedMembers = Object.entries(customSplit).filter(([, val]) => val !== '' && val !== '0')
-    if (includedMembers.length === 0) return
-    const equalAmount = calculateEqualSplit(amount, includedMembers.length)
     setCustomSplit((prev) => {
-      const updated: Record<string, string> = {}
-      Object.entries(prev).forEach(([id, val]) => {
-        updated[id] = val !== '' && val !== '0' ? equalAmount : val
-      })
-      return updated
+      // Check if any members are already included
+      const currentlyIncluded = Object.entries(prev).filter(([, val]) => val !== '')
+
+      if (currentlyIncluded.length > 0) {
+        // Some members already selected - only split among them
+        const equalAmount = calculateEqualSplit(amount, currentlyIncluded.length)
+        const updated: Record<string, string> = {}
+        Object.entries(prev).forEach(([id, val]) => {
+          updated[id] = val !== '' ? equalAmount : val
+        })
+        return updated
+      } else {
+        // No one selected yet - add all members
+        const equalAmount = calculateEqualSplit(amount, members.length)
+        const updated: Record<string, string> = {}
+        members.forEach((m) => {
+          updated[m.id] = equalAmount
+        })
+        return updated
+      }
     })
   }
 
@@ -152,8 +199,10 @@ export function AddExpenseDialog({
   }, 0)
   const totalAmount = parseFloat(amount) || 0
   const difference = totalAmount - splitTotal
-  const includedMembers = members.filter((m) => customSplit[m.id] !== '' && customSplit[m.id] !== '0')
-  const excludedMembers = members.filter((m) => customSplit[m.id] === '' || customSplit[m.id] === '0')
+  // Members are "included" if they have any value (including '0')
+  // Members are "excluded" only if their value is empty string
+  const includedMembers = members.filter((m) => customSplit[m.id] !== '')
+  const excludedMembers = members.filter((m) => customSplit[m.id] === '')
 
   const [error, setError] = useState<string | null>(null)
 
@@ -174,15 +223,22 @@ export function AddExpenseDialog({
     setIsSubmitting(true)
     setError(null)
     try {
-      await onSubmit({
+      const expenseInput = {
         amount: amountNum,
         description: description.trim(),
         category,
         paidBy,
         splitWith: splitWithIds,
-        splitMode: 'custom',
+        splitMode: 'custom' as const,
         customSplit: customSplitNumbers,
-      })
+      }
+
+      if (isEditMode && expense && onUpdate) {
+        await onUpdate(expense.id, expenseInput)
+      } else {
+        await onSubmit(expenseInput)
+      }
+
       // Reset form
       setAmount('')
       setDescription('')
@@ -195,7 +251,7 @@ export function AddExpenseDialog({
       setCustomSplit(initialSplit)
       onOpenChange(false)
     } catch (err) {
-      console.error('Failed to add expense:', err)
+      console.error('Failed to save expense:', err)
       setError(err instanceof Error ? err.message : t('saveFailed'))
     } finally {
       setIsSubmitting(false)
@@ -206,7 +262,7 @@ export function AddExpenseDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t('addExpenseTitle')}</DialogTitle>
+          <DialogTitle>{isEditMode ? t('editExpenseTitle') : t('addExpenseTitle')}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-5">
@@ -243,20 +299,20 @@ export function AddExpenseDialog({
           {/* Category */}
           <div className="space-y-2">
             <Label>{t('category')}</Label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => setCategory(cat)}
-                  className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm transition-colors ${
+                  className={`flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2.5 text-sm transition-colors ${
                     category === cat
                       ? 'border-primary-500 bg-primary-50 text-primary-700'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   <span>{CATEGORY_ICONS[cat]}</span>
-                  <span>{getCategoryLabel(cat)}</span>
+                  <span className="truncate">{getCategoryLabel(cat)}</span>
                 </button>
               ))}
             </div>
@@ -402,6 +458,7 @@ export function AddExpenseDialog({
             className="flex-1"
             onClick={handleSubmit}
             disabled={
+              !currentMemberId ||
               !amount ||
               parseFloat(amount) <= 0 ||
               !description.trim() ||

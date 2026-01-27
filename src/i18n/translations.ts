@@ -7,6 +7,7 @@ const translations = {
     save: '儲存',
     saving: '儲存中...',
     delete: '刪除',
+    edit: '編輯',
     confirm: '確認',
     back: '返回',
     copy: '複製',
@@ -53,6 +54,7 @@ const translations = {
 
     // Add Expense Dialog
     addExpenseTitle: '新增帳單',
+    editExpenseTitle: '編輯帳單',
     amount: '金額',
     description: '描述',
     descriptionPlaceholder: '例如：晚餐、計程車',
@@ -80,6 +82,14 @@ const translations = {
     shouldPay: '應付',
     balance: '結餘',
     expenseCount: '筆',
+    you: '你',
+    leaveGroupTitle: '離開群組',
+    leaveGroupConfirm: '確定要離開這個群組嗎？你將無法再查看此群組的帳單。',
+    leaveGroup: '離開群組',
+    removeMemberTitle: '移除成員',
+    removeMemberConfirm: '確定要移除 {name} 嗎？',
+    removeMember: '移除',
+    removing: '移除中...',
 
     // Settlement
     settlementTitle: '結算明細',
@@ -91,6 +101,7 @@ const translations = {
     unpaid: '未付',
     markAsPaid: '標記為已付款',
     onlyReceiverCanMark: '只有收款人可以標記',
+    reset: '重置',
 
     // Join Page
     joinGroupTitle: '加入分帳群組',
@@ -113,6 +124,7 @@ const translations = {
     save: 'Save',
     saving: 'Saving...',
     delete: 'Delete',
+    edit: 'Edit',
     confirm: 'Confirm',
     back: 'Back',
     copy: 'Copy',
@@ -159,6 +171,7 @@ const translations = {
 
     // Add Expense Dialog
     addExpenseTitle: 'Add Expense',
+    editExpenseTitle: 'Edit Expense',
     amount: 'Amount',
     description: 'Description',
     descriptionPlaceholder: 'e.g., Dinner, Taxi',
@@ -186,6 +199,14 @@ const translations = {
     shouldPay: 'Owes',
     balance: 'Balance',
     expenseCount: 'items',
+    you: 'You',
+    leaveGroupTitle: 'Leave Group',
+    leaveGroupConfirm: 'Are you sure you want to leave this group? You will no longer be able to view its expenses.',
+    leaveGroup: 'Leave Group',
+    removeMemberTitle: 'Remove Member',
+    removeMemberConfirm: 'Are you sure you want to remove {name}?',
+    removeMember: 'Remove',
+    removing: 'Removing...',
 
     // Settlement
     settlementTitle: 'Settlement',
@@ -197,6 +218,7 @@ const translations = {
     unpaid: 'Unpaid',
     markAsPaid: 'Mark as paid',
     onlyReceiverCanMark: 'Only receiver can mark as paid',
+    reset: 'Reset',
 
     // Join Page
     joinGroupTitle: 'Join Group',
@@ -219,6 +241,7 @@ const translations = {
     save: '保存',
     saving: '保存中...',
     delete: '削除',
+    edit: '編集',
     confirm: '確認',
     back: '戻る',
     copy: 'コピー',
@@ -265,6 +288,7 @@ const translations = {
 
     // Add Expense Dialog
     addExpenseTitle: '支出を追加',
+    editExpenseTitle: '支出を編集',
     amount: '金額',
     description: '説明',
     descriptionPlaceholder: '例：夕食、タクシー',
@@ -292,6 +316,14 @@ const translations = {
     shouldPay: '負担額',
     balance: '残高',
     expenseCount: '件',
+    you: 'あなた',
+    leaveGroupTitle: 'グループを退出',
+    leaveGroupConfirm: 'このグループを退出しますか？支出を確認できなくなります。',
+    leaveGroup: '退出する',
+    removeMemberTitle: 'メンバーを削除',
+    removeMemberConfirm: '{name}を削除しますか？',
+    removeMember: '削除',
+    removing: '削除中...',
 
     // Settlement
     settlementTitle: '精算明細',
@@ -303,6 +335,7 @@ const translations = {
     unpaid: '未払い',
     markAsPaid: '支払済にする',
     onlyReceiverCanMark: '受取人のみ確認できます',
+    reset: 'リセット',
 
     // Join Page
     joinGroupTitle: 'グループに参加',
@@ -325,6 +358,7 @@ const translations = {
     save: '저장',
     saving: '저장 중...',
     delete: '삭제',
+    edit: '수정',
     confirm: '확인',
     back: '뒤로',
     copy: '복사',
@@ -371,6 +405,7 @@ const translations = {
 
     // Add Expense Dialog
     addExpenseTitle: '지출 추가',
+    editExpenseTitle: '지출 수정',
     amount: '금액',
     description: '설명',
     descriptionPlaceholder: '예: 저녁, 택시',
@@ -398,6 +433,14 @@ const translations = {
     shouldPay: '부담액',
     balance: '잔액',
     expenseCount: '건',
+    you: '나',
+    leaveGroupTitle: '그룹 나가기',
+    leaveGroupConfirm: '이 그룹에서 나가시겠습니까? 더 이상 지출 내역을 볼 수 없습니다.',
+    leaveGroup: '나가기',
+    removeMemberTitle: '멤버 삭제',
+    removeMemberConfirm: '{name}님을 삭제하시겠습니까?',
+    removeMember: '삭제',
+    removing: '삭제 중...',
 
     // Settlement
     settlementTitle: '정산 내역',
@@ -409,6 +452,7 @@ const translations = {
     unpaid: '미완료',
     markAsPaid: '완료로 표시',
     onlyReceiverCanMark: '수령인만 표시할 수 있습니다',
+    reset: '초기화',
 
     // Join Page
     joinGroupTitle: '그룹 참여',
@@ -431,6 +475,7 @@ const translations = {
     save: 'Guardar',
     saving: 'Guardando...',
     delete: 'Eliminar',
+    edit: 'Editar',
     confirm: 'Confirmar',
     back: 'Volver',
     copy: 'Copiar',
@@ -477,6 +522,7 @@ const translations = {
 
     // Add Expense Dialog
     addExpenseTitle: 'Agregar gasto',
+    editExpenseTitle: 'Editar gasto',
     amount: 'Monto',
     description: 'Descripción',
     descriptionPlaceholder: 'Ej: Cena, Taxi',
@@ -504,6 +550,14 @@ const translations = {
     shouldPay: 'Debe',
     balance: 'Balance',
     expenseCount: 'items',
+    you: 'Tú',
+    leaveGroupTitle: 'Salir del grupo',
+    leaveGroupConfirm: '¿Seguro que quieres salir de este grupo? Ya no podrás ver los gastos.',
+    leaveGroup: 'Salir',
+    removeMemberTitle: 'Eliminar miembro',
+    removeMemberConfirm: '¿Seguro que quieres eliminar a {name}?',
+    removeMember: 'Eliminar',
+    removing: 'Eliminando...',
 
     // Settlement
     settlementTitle: 'Liquidación',
@@ -515,6 +569,7 @@ const translations = {
     unpaid: 'Pendiente',
     markAsPaid: 'Marcar como pagado',
     onlyReceiverCanMark: 'Solo el receptor puede marcar',
+    reset: 'Reiniciar',
 
     // Join Page
     joinGroupTitle: 'Unirse al grupo',

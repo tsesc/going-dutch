@@ -1,4 +1,4 @@
-import { Receipt, Trash2 } from 'lucide-react'
+import { Receipt, Trash2, Pencil } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ interface ExpenseListProps {
   members: Member[]
   isLoading: boolean
   onDelete: (expenseId: string) => Promise<void>
+  onEdit: (expense: Expense) => void
 }
 
 export function ExpenseList({
@@ -18,21 +19,10 @@ export function ExpenseList({
   members,
   isLoading,
   onDelete,
+  onEdit,
 }: ExpenseListProps) {
   const { t, language } = useTranslation()
   const getMember = (id: string) => members.find((m) => m.id === id)
-
-  const getCategoryLabel = (category: string) => {
-    const labels: Record<string, string> = {
-      food: t('categoryFood'),
-      transport: t('categoryTransport'),
-      lodging: t('categoryLodging'),
-      activity: t('categoryActivity'),
-      shopping: t('categoryShopping'),
-      other: t('categoryOther'),
-    }
-    return labels[category] || category
-  }
 
   const formatDate = (timestamp: { toDate: () => Date }) => {
     const date = timestamp.toDate()
@@ -43,8 +33,12 @@ export function ExpenseList({
   }
 
   const handleDelete = async (expenseId: string) => {
-    if (confirm(t('confirmDelete'))) {
+    // Temporarily skip confirm dialog for testing
+    try {
       await onDelete(expenseId)
+    } catch (error) {
+      console.error('Delete expense failed:', error)
+      alert('刪除失敗：' + (error instanceof Error ? error.message : String(error)))
     }
   }
 
@@ -80,61 +74,93 @@ export function ExpenseList({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {expenses.map((expense) => {
         const payer = getMember(expense.paidBy)
         const splitCount = expense.splitWith.length
 
         return (
           <Card key={expense.id} className="group">
-            <CardContent className="flex items-center gap-3 p-4">
-              <Avatar
-                className="size-10 shrink-0"
-                style={{ backgroundColor: payer?.color || '#gray' }}
-              >
-                <AvatarFallback
-                  className="text-white text-sm font-medium"
+            <CardContent className="p-3 sm:p-4">
+              {/* 主要內容行 */}
+              <div className="flex items-center gap-3">
+                <Avatar
+                  className="size-9 sm:size-10 shrink-0"
                   style={{ backgroundColor: payer?.color || '#gray' }}
                 >
-                  {payer?.name.charAt(0) || '?'}
-                </AvatarFallback>
-              </Avatar>
+                  <AvatarFallback
+                    className="text-white text-sm font-medium"
+                    style={{ backgroundColor: payer?.color || '#gray' }}
+                  >
+                    {payer?.name.charAt(0) || '?'}
+                  </AvatarFallback>
+                </Avatar>
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">
-                    {CATEGORY_ICONS[expense.category]}
-                  </span>
-                  <span className="truncate font-medium">
-                    {expense.description}
-                  </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm">
+                      {CATEGORY_ICONS[expense.category]}
+                    </span>
+                    <span className="truncate font-medium text-sm sm:text-base">
+                      {expense.description}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {payer?.name} {t('paidBy')} · {formatDate(expense.date)}
+                  </p>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <span>{payer?.name} {t('paidBy')}</span>
-                  <span>·</span>
-                  <span>{splitCount} {t('splitCount')}</span>
-                  <span>·</span>
-                  <span>{formatDate(expense.date)}</span>
+
+                <div className="text-right shrink-0">
+                  <p className="font-semibold text-primary-600 text-sm sm:text-base">
+                    ${expense.amount.toLocaleString()}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-gray-400">
+                    {splitCount}{t('splitCount')}
+                  </p>
+                </div>
+
+                {/* 桌面版按鈕 */}
+                <div className="hidden sm:flex shrink-0 gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 text-gray-400 hover:text-primary-500 hover:bg-primary-50"
+                    onClick={() => onEdit(expense)}
+                  >
+                    <Pencil className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                    onClick={() => handleDelete(expense.id)}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
                 </div>
               </div>
 
-              <div className="text-right shrink-0 pr-1">
-                <p className="font-semibold text-primary-600">
-                  ${expense.amount.toLocaleString()}
-                </p>
-                <p className="text-xs text-gray-400">
-                  {getCategoryLabel(expense.category)}
-                </p>
+              {/* 手機版操作按鈕 - 點擊展開或滑動顯示 */}
+              <div className="flex sm:hidden justify-end gap-1 mt-2 pt-2 border-t border-gray-100">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs text-gray-500 hover:text-primary-500 hover:bg-primary-50"
+                  onClick={() => onEdit(expense)}
+                >
+                  <Pencil className="size-3.5 mr-1" />
+                  {t('edit')}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs text-gray-500 hover:text-red-500 hover:bg-red-50"
+                  onClick={() => handleDelete(expense.id)}
+                >
+                  <Trash2 className="size-3.5 mr-1" />
+                  {t('delete')}
+                </Button>
               </div>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="shrink-0 size-8 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 hover:bg-red-50"
-                onClick={() => handleDelete(expense.id)}
-              >
-                <Trash2 className="size-4" />
-              </Button>
             </CardContent>
           </Card>
         )

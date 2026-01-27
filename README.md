@@ -54,15 +54,28 @@ cp .env.example .env
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // 群組：已登入用戶可讀取/建立，只有成員可更新
     match /groups/{groupId} {
-      allow read, write: if true; // MVP: 開放存取
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null
+        && request.auth.uid in resource.data.memberAuthUids;
+      allow delete: if false;
     }
+    // 帳單：成員可讀取，建立者可編輯/刪除
     match /expenses/{expenseId} {
-      allow read, write: if true; // MVP: 開放存取
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null
+        && request.auth.uid == resource.data.createdByAuthUid;
     }
   }
 }
 ```
+
+> **安全規則說明**：
+> - 群組只有成員（`memberAuthUids` 包含該用戶）可以更新
+> - 帳單只有建立者（`createdByAuthUid` 等於該用戶）可以編輯或刪除
 
 ### 4. 啟動開發伺服器
 
@@ -132,25 +145,32 @@ VITE_FIREBASE_APP_ID=你的-app-id
 ### 4. 設定 Firestore
 
 1. 在 Firebase Console 啟用 **Cloud Firestore**
-2. 選擇「測試模式」或設定以下安全規則：
+2. 設定以下安全規則（支援 Row-Level Security）：
 
 ```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // 群組：已登入用戶可讀取/建立，只有成員可更新
     match /groups/{groupId} {
-      allow read, create: if true;
-      allow update: if true;
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null
+        && request.auth.uid in resource.data.memberAuthUids;
       allow delete: if false;
     }
+    // 帳單：成員可讀取，建立者可編輯/刪除
     match /expenses/{expenseId} {
-      allow read, create: if true;
-      allow update: if true;
-      allow delete: if false;
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null
+        && request.auth.uid == resource.data.createdByAuthUid;
     }
   }
 }
 ```
+
+> **Row-Level Security**：每個用戶只能編輯/刪除自己建立的帳單
 
 ### 5. 設定自動刪除 (TTL)
 

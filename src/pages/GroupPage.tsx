@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -20,15 +20,51 @@ import { ExpenseList } from '@/components/ExpenseList'
 import { MemberList } from '@/components/MemberList'
 import { Settlement } from '@/components/Settlement'
 import { AddExpenseDialog } from '@/components/AddExpenseDialog'
+import { useUserStore } from '@/stores/user-store'
+import { auth } from '@/lib/firebase'
+import type { Expense } from '@/types'
 
 export function GroupPage() {
   const { groupId } = useParams<{ groupId: string }>()
   const navigate = useNavigate()
-  const { group, isLoading: groupLoading, markSettlementPaid, getSettlementStatus } = useGroup(groupId!)
-  const { expenses, isLoading: expensesLoading, addExpense, deleteExpense } = useExpenses(groupId!)
+  const { group, isLoading: groupLoading, markSettlementPaid, getSettlementStatus, resetSettlements, removeMember } = useGroup(groupId!)
+  const { expenses, isLoading: expensesLoading, addExpense, updateExpense, deleteExpense } = useExpenses(groupId!)
   const { t } = useTranslation()
+  const { getMemberId, setMemberId } = useUserStore()
   const [showAddExpense, setShowAddExpense] = useState(false)
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
   const [copied, setCopied] = useState(false)
+
+  // Restore memberId from group members if not in local storage
+  // This handles cases where user joined on another device or localStorage was cleared
+  useEffect(() => {
+    if (!group || !groupId) return
+
+    const currentMemberId = getMemberId(groupId)
+    if (currentMemberId) return // Already have memberId
+
+    const currentAuthUid = auth.currentUser?.uid
+    if (!currentAuthUid) return
+
+    // Find member by authUid
+    const member = group.members.find((m) => m.authUid === currentAuthUid)
+    if (member) {
+      console.log('Restoring memberId from group members:', member.id)
+      setMemberId(groupId, member.id)
+    }
+  }, [group, groupId, getMemberId, setMemberId])
+
+  const handleEditExpense = (expense: Expense) => {
+    setEditingExpense(expense)
+    setShowAddExpense(true)
+  }
+
+  const handleDialogClose = (open: boolean) => {
+    setShowAddExpense(open)
+    if (!open) {
+      setEditingExpense(null)
+    }
+  }
 
   const getJoinLink = () => {
     if (!group) return ''
@@ -188,11 +224,19 @@ export function GroupPage() {
               members={group.members}
               isLoading={expensesLoading}
               onDelete={deleteExpense}
+              onEdit={handleEditExpense}
             />
           </TabsContent>
 
           <TabsContent value="members">
-            <MemberList members={group.members} expenses={expenses} />
+            <MemberList
+              members={group.members}
+              expenses={expenses}
+              createdBy={group.createdBy}
+              currentMemberId={getMemberId(groupId!)}
+              isCreator={group.createdByAuthUid === auth.currentUser?.uid}
+              onRemoveMember={removeMember}
+            />
           </TabsContent>
 
           <TabsContent value="settlement">
@@ -200,6 +244,7 @@ export function GroupPage() {
               members={group.members}
               expenses={expenses}
               onMarkPaid={markSettlementPaid}
+              onResetSettlements={resetSettlements}
               getSettlementStatus={getSettlementStatus}
             />
           </TabsContent>
@@ -218,12 +263,14 @@ export function GroupPage() {
         </Button>
       </div>
 
-      {/* Add Expense Dialog */}
+      {/* Add/Edit Expense Dialog */}
       <AddExpenseDialog
         open={showAddExpense}
-        onOpenChange={setShowAddExpense}
+        onOpenChange={handleDialogClose}
         members={group.members}
         onSubmit={addExpense}
+        onUpdate={updateExpense}
+        expense={editingExpense}
       />
     </div>
   )

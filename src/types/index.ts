@@ -33,6 +33,7 @@ export interface Member {
   name: string
   color: string
   joinedAt: Timestamp
+  authUid: string // Firebase Auth UID for row-level security
 }
 
 export interface SettlementRecord {
@@ -50,7 +51,9 @@ export interface Group {
   inviteCode: string
   createdAt: Timestamp
   createdBy: string
+  createdByAuthUid: string // Firebase Auth UID of creator
   members: Member[]
+  memberAuthUids: string[] // Array of member Auth UIDs for security rules
   currency: string
   settlements?: SettlementRecord[]
   expiresAt: Timestamp // Auto-delete after 14 days
@@ -71,8 +74,10 @@ export interface Expense {
   note?: string
   createdAt: Timestamp
   createdBy: string
+  createdByAuthUid: string // Firebase Auth UID for row-level security
   updatedAt?: Timestamp
   updatedBy?: string
+  updatedByAuthUid?: string
   expiresAt: Timestamp // Auto-delete after 14 days
 }
 

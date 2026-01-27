@@ -23,7 +23,9 @@ export function JoinPage() {
     setError(null)
 
     try {
+      console.log('Attempting to join group with code:', inviteCode)
       const groupId = await joinGroup(inviteCode, nickname.trim())
+      console.log('Join result:', groupId)
       if (groupId) {
         navigate(`/group/${groupId}`)
       } else {
@@ -31,7 +33,14 @@ export function JoinPage() {
       }
     } catch (err) {
       console.error('Failed to join group:', err)
-      setError(t('joinFailed'))
+      const errorMessage = err instanceof Error ? err.message : String(err)
+      if (errorMessage.includes('permission') || errorMessage.includes('PERMISSION_DENIED')) {
+        setError('權限錯誤，請重新整理頁面再試一次')
+      } else if (errorMessage.includes('Auth')) {
+        setError('認證錯誤，請重新整理頁面')
+      } else {
+        setError(t('joinFailed'))
+      }
     } finally {
       setIsJoining(false)
     }

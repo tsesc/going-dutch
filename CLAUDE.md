@@ -64,6 +64,18 @@ src/
 
 ## 資料結構
 
+### Member (成員)
+
+```typescript
+interface Member {
+  id: string
+  name: string
+  color: string
+  joinedAt: Timestamp
+  authUid: string       // Firebase Auth UID (Row-Level Security)
+}
+```
+
 ### Group (群組)
 
 ```typescript
@@ -71,10 +83,13 @@ interface Group {
   id: string
   name: string
   inviteCode: string
-  members: Member[]
-  settlements?: SettlementRecord[]  // 結算狀態
   createdAt: Timestamp
-  expiresAt: Timestamp  // TTL 用，目前需 Blaze 方案
+  createdBy: string
+  createdByAuthUid: string    // Firebase Auth UID of creator
+  members: Member[]
+  memberAuthUids: string[]    // Array for security rules
+  settlements?: SettlementRecord[]
+  expiresAt: Timestamp        // TTL 用，目前需 Blaze 方案
 }
 ```
 
@@ -87,13 +102,26 @@ interface Expense {
   amount: number
   description: string
   category: Category
-  paidBy: string        // 付款人 ID
-  splitWith: string[]   // 參與分攤的成員 ID
+  paidBy: string              // 付款人 Member ID
+  splitWith: string[]         // 參與分攤的成員 ID
   splitMode: 'equal' | 'custom'
-  customSplit?: Record<string, number>  // 自訂金額
+  customSplit?: Record<string, number>
   date: Timestamp
+  createdBy: string
+  createdByAuthUid: string    // Firebase Auth UID (Row-Level Security)
+  updatedByAuthUid?: string
   expiresAt: Timestamp
 }
+```
+
+## 安全規則 (Row-Level Security)
+
+```javascript
+// 群組：成員才可更新
+allow update: if request.auth.uid in resource.data.memberAuthUids;
+
+// 帳單：只有建立者可編輯/刪除
+allow update, delete: if request.auth.uid == resource.data.createdByAuthUid;
 ```
 
 ## 開發注意事項
